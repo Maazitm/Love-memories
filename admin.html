@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Smriti Admin — Dwani Academy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css" />
+<style>
+  .admin-wrap{ max-width: 1100px; margin: 0 auto; padding: 48px 24px 80px; }
+  .login-box{
+    max-width: 360px; margin: 80px auto; background: var(--surface);
+    border: 1px solid var(--line); border-radius: 18px; padding: 28px;
+    text-align:center;
+  }
+  .login-box h1{ font-family: var(--font-display); font-size: 22px; margin: 0 0 6px; }
+  .login-box p{ color: var(--muted); font-size: 13.5px; margin: 0 0 18px; }
+  .login-box input{
+    width:100%; background: var(--bg-soft); border: 1px solid var(--line); border-radius: 10px;
+    padding: 11px 12px; color: var(--cream); font-family: var(--font-body); margin-bottom: 12px; outline:none;
+  }
+  .login-box input:focus{ border-color: var(--gold); }
+  .login-error{ color: var(--coral); font-size: 12.5px; min-height: 16px; margin-bottom: 6px; }
+
+  .admin-grid{
+    display:grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 16px; margin-top: 24px;
+  }
+  .admin-card{
+    background: var(--surface); border:1px solid var(--line); border-radius: 14px; overflow:hidden;
+  }
+  .admin-thumb{ width:100%; aspect-ratio: 1/1; object-fit: cover; background:#111; display:block; }
+  .admin-meta{ padding: 10px 12px 12px; }
+  .admin-name{ font-size: 12.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .admin-sub{ font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .admin-link{ font-size: 11.5px; color: var(--gold); text-decoration:none; }
+
+  .toolbar{ display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+  .count-badge{ color: var(--muted); font-size: 13.5px; }
+</style>
+</head>
+<body>
+  <div class="grain"></div>
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark">✺</span>
+      <span class="brand-text">
+        <span class="brand-eyebrow">Dwani Academy</span>
+        <span class="brand-name">Smriti — Admin</span>
+      </span>
+    </div>
+  </header>
+
+  <div id="loginView" class="admin-wrap">
+    <div class="login-box">
+      <h1>Enter the vault</h1>
+      <p>Admin access only.</p>
+      <input type="password" id="passwordInput" placeholder="Admin password" />
+      <p class="login-error" id="loginError"></p>
+      <button class="btn-primary" id="loginBtn" style="width:100%">Unlock</button>
+    </div>
+  </div>
+
+  <div id="galleryView" class="admin-wrap" hidden>
+    <div class="toolbar">
+      <h1 style="font-family:var(--font-display); font-size:24px; margin:0;">All memories</h1>
+      <span class="count-badge" id="countBadge"></span>
+      <button class="btn-secondary" id="refreshBtn">Refresh</button>
+    </div>
+    <div class="admin-grid" id="adminGrid"></div>
+  </div>
+
+  <script src="admin.js"></script>
+</body>
+</html>
