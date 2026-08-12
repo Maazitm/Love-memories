@@ -1,52 +1,393 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Fast Uploader</title>
-    <script src="https://jsdelivr.net"></script>
-    <style>
-        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: #121212; color: white; }
-        .box { border: 2px dashed #3ecf8e; padding: 40px; text-align: center; border-radius: 8px; background: #1e1e1e; }
-        input { display: none; }
-        label { background: #3ecf8e; color: black; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Dream Webies Book — Upload</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#1a0e14;
+    --card:#24141b;
+    --card-edge:#3a2029;
+    --pink:#ff3d81;
+    --pink-soft:#ffb3d1;
+    --pink-dim:#7a2f47;
+    --ink:#fdf5f8;
+    --muted:#b98fa0;
+    --ok:#3ee89a;
+    --err:#ff6b6b;
+    --radius:18px;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+    background:
+      radial-gradient(circle at 15% 10%, rgba(255,61,129,0.16), transparent 45%),
+      radial-gradient(circle at 85% 90%, rgba(255,61,129,0.10), transparent 50%),
+      var(--bg);
+    color:var(--ink);
+    font-family:'Inter', system-ui, sans-serif;
+  }
+  .page{ width:100%; max-width:460px; }
+  .brand{
+    display:flex;
+    align-items:baseline;
+    gap:10px;
+    margin-bottom:18px;
+    padding:0 4px;
+  }
+  .brand-mark{
+    font-family:'Fraunces', serif;
+    font-weight:700;
+    font-size:1.5rem;
+    letter-spacing:-0.01em;
+  }
+  .brand-mark em{ font-style:italic; color:var(--pink); }
+  .brand-sub{
+    font-family:'JetBrains Mono', monospace;
+    font-size:0.7rem;
+    color:var(--muted);
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+  }
+
+  .card{
+    position:relative;
+    display:flex;
+    background:var(--card);
+    border:1px solid var(--card-edge);
+    border-radius:var(--radius);
+    overflow:hidden;
+    box-shadow:0 30px 60px -20px rgba(0,0,0,0.6);
+  }
+  /* page-fold corner, ties the "book" identity in */
+  .card::after{
+    content:"";
+    position:absolute;
+    top:0; right:0;
+    width:0; height:0;
+    border-style:solid;
+    border-width:0 34px 34px 0;
+    border-color:transparent var(--pink-dim) transparent transparent;
+    opacity:0.55;
+  }
+
+  /* ribbon: fills as upload progresses, like a bookmark */
+  .ribbon{
+    width:14px;
+    flex-shrink:0;
+    background:var(--card-edge);
+    position:relative;
+    overflow:hidden;
+  }
+  .ribbon-fill{
+    position:absolute;
+    bottom:0; left:0; right:0;
+    height:0%;
+    background:linear-gradient(180deg, var(--pink-soft), var(--pink));
+    transition:height 0.25s ease;
+  }
+
+  .content{
+    flex:1;
+    padding:32px 28px 28px;
+    min-width:0;
+  }
+
+  h1{
+    font-family:'Fraunces', serif;
+    font-size:1.3rem;
+    font-weight:600;
+    margin:0 0 6px;
+    line-height:1.25;
+  }
+  .lede{
+    margin:0 0 22px;
+    color:var(--muted);
+    font-size:0.88rem;
+    line-height:1.5;
+  }
+  .lede strong{ color:var(--pink-soft); font-weight:600; }
+
+  .dropzone{
+    border:1.5px dashed var(--pink-dim);
+    border-radius:14px;
+    padding:28px 16px;
+    text-align:center;
+    cursor:pointer;
+    transition:border-color 0.2s, background 0.2s;
+    background:rgba(255,61,129,0.03);
+  }
+  .dropzone.drag{
+    border-color:var(--pink);
+    background:rgba(255,61,129,0.09);
+  }
+  .dropzone svg{ margin-bottom:10px; opacity:0.85; }
+  .dz-title{ font-weight:600; font-size:0.95rem; margin:0 0 4px; }
+  .dz-sub{ font-size:0.78rem; color:var(--muted); margin:0; }
+
+  input[type=file]{ display:none; }
+
+  .file-row{
+    display:none;
+    align-items:center;
+    gap:10px;
+    margin-top:16px;
+    padding:12px 14px;
+    background:rgba(255,255,255,0.03);
+    border:1px solid var(--card-edge);
+    border-radius:10px;
+  }
+  .file-row.show{ display:flex; }
+  .file-icon{
+    width:34px; height:34px; border-radius:8px;
+    background:var(--pink-dim);
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+  }
+  .file-meta{ min-width:0; flex:1; }
+  .file-name{
+    font-size:0.82rem; font-weight:500;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+  .file-size{ font-size:0.72rem; color:var(--muted); font-family:'JetBrains Mono', monospace; }
+
+  .progress-track{
+    margin-top:16px;
+    height:8px;
+    border-radius:999px;
+    background:rgba(255,255,255,0.06);
+    overflow:hidden;
+    display:none;
+  }
+  .progress-track.show{ display:block; }
+  .progress-bar{
+    height:100%;
+    width:0%;
+    border-radius:999px;
+    background:linear-gradient(90deg, var(--pink), var(--pink-soft));
+    transition:width 0.15s ease;
+  }
+
+  .status{
+    margin-top:14px;
+    font-size:0.82rem;
+    font-family:'JetBrains Mono', monospace;
+    display:none;
+    align-items:center;
+    gap:8px;
+  }
+  .status.show{ display:flex; }
+  .status.ok{ color:var(--ok); }
+  .status.err{ color:var(--err); }
+  .status.busy{ color:var(--pink-soft); }
+
+  .dot{
+    width:7px; height:7px; border-radius:50%;
+    background:currentColor;
+    flex-shrink:0;
+  }
+  .busy .dot{ animation:pulse 1s ease-in-out infinite; }
+  @keyframes pulse{ 0%,100%{opacity:1;} 50%{opacity:0.3;} }
+
+  .footnote{
+    margin-top:20px;
+    font-size:0.7rem;
+    color:var(--muted);
+    text-align:center;
+    letter-spacing:0.02em;
+  }
+
+  @media (max-width:420px){
+    .content{ padding:26px 18px 22px; }
+    h1{ font-size:1.15rem; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation:none !important; transition:none !important; }
+  }
+</style>
 </head>
 <body>
-    <div class="box">
-        <h2>Upload Any Photo, Video, or Doc</h2>
-        <p>15GB Free Storage Limit</p><br>
-        <label for="file-upload">Choose File</label>
-        <input type="file" id="file-upload" onchange="uploadFile(this.files[0])">
-        <p id="status"></p>
+
+<div class="page">
+  <div class="brand">
+    <span class="brand-mark">Dream Webies <em>Book</em></span>
+  </div>
+  <div class="brand" style="margin-top:-14px;">
+    <span class="brand-sub">15GB free storage</span>
+  </div>
+
+  <div class="card">
+    <div class="ribbon"><div class="ribbon-fill" id="ribbonFill"></div></div>
+
+    <div class="content">
+      <h1>Upload a file</h1>
+      <p class="lede">Photos, videos, or documents. Stays on this page and keeps going while you wait — <strong>please don't close this tab mid-upload.</strong></p>
+
+      <div class="dropzone" id="dropzone">
+        <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#ff3d81" stroke-width="1.6">
+          <path d="M12 16V4M12 4l-4 4M12 4l4 4" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <p class="dz-title">Tap to choose, or drag a file here</p>
+        <p class="dz-sub">Any file type · up to your plan's limit</p>
+        <input type="file" id="fileInput">
+      </div>
+
+      <div class="file-row" id="fileRow">
+        <div class="file-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fdf5f8" stroke-width="1.8">
+            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" stroke-linejoin="round"/>
+            <path d="M14 2v6h6" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="file-meta">
+          <div class="file-name" id="fileName">—</div>
+          <div class="file-size" id="fileSize">—</div>
+        </div>
+      </div>
+
+      <div class="progress-track" id="progressTrack">
+        <div class="progress-bar" id="progressBar"></div>
+      </div>
+
+      <div class="status" id="status">
+        <span class="dot"></span>
+        <span id="statusText">—</span>
+      </div>
+
+      <p class="footnote">Uploads go straight to your private storage bucket.</p>
     </div>
+  </div>
+</div>
 
-    <script>
-        // REPLACE THESE WITH YOUR SUPABASE PROJECT DETAILS (Found in Project Settings > API)
-        const SUPABASE_URL = "https://iaaldlvwnspktplcsjxx.storage.supabase.co/storage/v1/s3";
-        const SUPABASE_KEY = "687e62e507e3c857182df91c9599389c";
+<script>
+/* ============================================================
+   CONFIGURE THESE — Project Settings → API in your Supabase dashboard
+   - SUPABASE_URL: your PROJECT URL, e.g. https://iaaldlvwnspktplcsjxx.supabase.co
+     (NOT the S3 endpoint, and no /storage/v1/... suffix here)
+   - SUPABASE_ANON_KEY: the "anon public" key — a long token, usually
+     starting with "eyJhbGci..." or "sb_publishable_..."
+   - BUCKET_NAME: the storage bucket you upload into (must exist and
+     allow uploads via your bucket policies / RLS)
+   ============================================================ */
+const SUPABASE_URL = "https://iaaldlvwnspktplcsjxx.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_Q8CJ3T4QnEivdhYS4y2cAQ_X4QAdLin";
+const BUCKET_NAME = "uploads";
 
-        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const dropzone   = document.getElementById('dropzone');
+const fileInput  = document.getElementById('fileInput');
+const fileRow    = document.getElementById('fileRow');
+const fileName   = document.getElementById('fileName');
+const fileSize   = document.getElementById('fileSize');
+const progressTrack = document.getElementById('progressTrack');
+const progressBar   = document.getElementById('progressBar');
+const ribbonFill = document.getElementById('ribbonFill');
+const statusEl   = document.getElementById('status');
+const statusText = document.getElementById('statusText');
 
-        async function uploadFile(file) {
-            if (!file) return;
-            const statusText = document.getElementById('status');
-            statusText.innerText = "Uploading " + file.name + "...";
+let uploadInProgress = false;
 
-            // Generates a unique file path using the timestamp
-            const filePath = `${Date.now()}_${file.name}`;
+dropzone.addEventListener('click', () => fileInput.click());
+dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('drag'); });
+dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag'));
+dropzone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropzone.classList.remove('drag');
+  if (e.dataTransfer.files[0]) startUpload(e.dataTransfer.files[0]);
+});
+fileInput.addEventListener('change', e => {
+  if (e.target.files[0]) startUpload(e.target.files[0]);
+});
 
-            const { data, error } = await supabase.storage
-                .from('uploads')
-                .upload(filePath, file);
+// Warn (not block) if the user tries to close/reload mid-upload.
+window.addEventListener('beforeunload', (e) => {
+  if (uploadInProgress) {
+    e.preventDefault();
+    e.returnValue = '';
+  }
+});
 
-            if (error) {
-                statusText.innerText = "Error: " + error.message;
-                statusText.style.color = "red";
-            } else {
-                statusText.innerText = "Upload Successful!";
-                statusText.style.color = "#3ecf8e";
-            }
-        }
-    </script>
+function formatBytes(bytes){
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024*1024) return (bytes/1024).toFixed(1) + ' KB';
+  if (bytes < 1024*1024*1024) return (bytes/(1024*1024)).toFixed(1) + ' MB';
+  return (bytes/(1024*1024*1024)).toFixed(2) + ' GB';
+}
+
+function setStatus(kind, text){
+  statusEl.className = 'status show ' + kind;
+  statusText.textContent = text;
+}
+
+function startUpload(file){
+  if (SUPABASE_URL.includes('YOUR-PROJECT-REF') || SUPABASE_ANON_KEY.includes('YOUR-ANON')) {
+    setStatus('err', 'Add your real Supabase project URL and anon key before uploading.');
+    progressTrack.classList.remove('show');
+    return;
+  }
+
+  fileRow.classList.add('show');
+  fileName.textContent = file.name;
+  fileSize.textContent = formatBytes(file.size);
+
+  progressTrack.classList.add('show');
+  progressBar.style.width = '0%';
+  ribbonFill.style.height = '0%';
+  setStatus('busy', 'Uploading ' + file.name + '…');
+  uploadInProgress = true;
+
+  const path = Date.now() + '_' + file.name.replace(/\s+/g, '_');
+  const url = `${SUPABASE_URL}/storage/v1/object/${BUCKET_NAME}/${encodeURIComponent(path)}`;
+
+  const xhr = new XMLHttpRequest();
+  xhr.open('POST', url, true);
+  xhr.setRequestHeader('apikey', SUPABASE_ANON_KEY);
+  xhr.setRequestHeader('Authorization', 'Bearer ' + SUPABASE_ANON_KEY);
+  xhr.setRequestHeader('x-upsert', 'true');
+  xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
+
+  xhr.upload.onprogress = (evt) => {
+    if (!evt.lengthComputable) return;
+    const pct = Math.round((evt.loaded / evt.total) * 100);
+    progressBar.style.width = pct + '%';
+    ribbonFill.style.height = pct + '%';
+    setStatus('busy', pct + '% uploaded…');
+  };
+
+  xhr.onload = () => {
+    uploadInProgress = false;
+    if (xhr.status >= 200 && xhr.status < 300) {
+      progressBar.style.width = '100%';
+      ribbonFill.style.height = '100%';
+      setStatus('ok', 'Upload successful — ' + file.name + ' is saved.');
+    } else {
+      let msg = 'Upload failed (' + xhr.status + ').';
+      try {
+        const body = JSON.parse(xhr.responseText);
+        if (body.message) msg = 'Upload failed: ' + body.message;
+      } catch (_) {}
+      setStatus('err', msg);
+    }
+  };
+
+  xhr.onerror = () => {
+    uploadInProgress = false;
+    setStatus('err', 'Network error — check your connection and try again.');
+  };
+
+  xhr.send(file);
+}
+</script>
 </body>
 </html>
