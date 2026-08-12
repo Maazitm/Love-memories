@@ -1,84 +1,52 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
-<title>Smriti — by Dwani Academy</title>
-<meta name="description" content="Send your batch photos and videos in full quality, straight to the vault." />
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css" />
+    <meta charset="UTF-8">
+    <title>Fast Uploader</title>
+    <script src="https://jsdelivr.net"></script>
+    <style>
+        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background: #121212; color: white; }
+        .box { border: 2px dashed #3ecf8e; padding: 40px; text-align: center; border-radius: 8px; background: #1e1e1e; }
+        input { display: none; }
+        label { background: #3ecf8e; color: black; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+    </style>
 </head>
 <body>
-
-  <div class="grain"></div>
-
-  <header class="topbar">
-    <div class="brand">
-      <span class="brand-mark">✺</span>
-      <span class="brand-text">
-        <span class="brand-eyebrow">Dwani Academy</span>
-        <span class="brand-name">Smriti</span>
-      </span>
+    <div class="box">
+        <h2>Upload Any Photo, Video, or Doc</h2>
+        <p>15GB Free Storage Limit</p><br>
+        <label for="file-upload">Choose File</label>
+        <input type="file" id="file-upload" onchange="uploadFile(this.files[0])">
+        <p id="status"></p>
     </div>
-    <span class="pill" id="connectionPill">
-      <span class="dot"></span> Ready to receive
-    </span>
-  </header>
 
-  <main class="wrap">
+    <script>
+        // REPLACE THESE WITH YOUR SUPABASE PROJECT DETAILS (Found in Project Settings > API)
+        const SUPABASE_URL = "https://YOUR_PROJECT_REF.supabase.co";
+        const SUPABASE_KEY = "YOUR_ANON_PUBLIC_KEY";
 
-    <section class="hero">
-      <p class="eyebrow">स्मृति · every frame your batch shot, in one place</p>
-      <h1>Send it in full quality.<br>We'll keep it safe.</h1>
-      <p class="sub">
-        Drop in every photo and video from your phone — original resolution,
-        no compression. It goes straight into the vault. Only your admin can open it.
-      </p>
-    </section>
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    <section class="name-row">
-      <label for="studentName">Your name</label>
-      <input type="text" id="studentName" placeholder="e.g. Aarav Sharma" autocomplete="name" />
-    </section>
+        async function uploadFile(file) {
+            if (!file) return;
+            const statusText = document.getElementById('status');
+            statusText.innerText = "Uploading " + file.name + "...";
 
-    <section class="tray" id="dropZone">
-      <input type="file" id="fileInput" multiple accept="image/*,video/*" hidden />
-      <div class="tray-inner" id="trayInner">
-        <div class="tray-icon">🖼️</div>
-        <p class="tray-title">Drag photos & videos here</p>
-        <p class="tray-sub">or tap to choose from your gallery</p>
-        <button class="btn-choose" id="chooseBtn" type="button">Choose files</button>
-      </div>
-    </section>
+            // Generates a unique file path using the timestamp
+            const filePath = `${Date.now()}_${file.name}`;
 
-    <section class="summary-bar" id="summaryBar" hidden>
-      <div class="summary-left">
-        <div class="summary-track">
-          <div class="summary-fill" id="summaryFill"></div>
-        </div>
-        <p class="summary-text" id="summaryText">0 of 0 uploaded</p>
-      </div>
-      <div class="summary-actions">
-        <button class="btn-secondary" id="cancelAllBtn" type="button">Cancel all</button>
-        <button class="btn-primary" id="uploadAllBtn" type="button">Send to the vault</button>
-      </div>
-    </section>
+            const { data, error } = await supabase.storage
+                .from('uploads')
+                .upload(filePath, file);
 
-    <section class="grid" id="fileGrid"></section>
-
-    <p class="footnote">
-      Uploaded memories are visible only to Dwani Academy admins — not to other students, not even to you once it's sent. That's on purpose. 🙂
-    </p>
-
-  </main>
-
-  <!-- Leave-page guard while an upload is in progress -->
-  <div class="leave-toast" id="leaveToast">
-    <span>⏳ Please wait — your memories are still uploading.</span>
-  </div>
-
-  <script src="app.js"></script>
+            if (error) {
+                statusText.innerText = "Error: " + error.message;
+                statusText.style.color = "red";
+            } else {
+                statusText.innerText = "Upload Successful!";
+                statusText.style.color = "#3ecf8e";
+            }
+        }
+    </script>
 </body>
 </html>
